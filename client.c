@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 
 int parse_URI(char *uri, char *hostname, int *port, char *identifier)
 {
-
+  return 0;
 }
 
 /*------------------------------------*
@@ -52,6 +52,7 @@ int perform_http(int sockid, char *identifier)
   /* connect to server and retrieve response */
 
    close(sockid);
+   return 0;
 }
 
 /*---------------------------------------------------------------------------*

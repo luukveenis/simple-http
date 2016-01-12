@@ -13,3 +13,6 @@ client: client.o  util.o
 #compile server only
 server: server.o util.o
 	gcc -g -o server server.o util.o  -lnsl
+
+clean:
+	rm *.o
