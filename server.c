@@ -5,6 +5,8 @@
 * Instructor: Kui Wu
 -------------------------------*/
 
+#include <unistd.h>
+#include <stdlib.h>
 
 #define MAX_STR_LEN 120         /* maximum string length */
 #define SERVER_PORT_ID 9898     /* server port number */
@@ -19,14 +21,16 @@ void cleanExit();
  * Communicate with client and close new socket after done
  *---------------------------------------------------------------------------*/
 
-main(int argc, char *argv)
+int main(int argc, char **argv)
 {
-    int newsockid; /* return value of the accept() call */
+  int newsockid; /* return value of the accept() call */
 
-    while (1)
-    {
-      close(newsockid);
-    }
+  while (1)
+  {
+    close(newsockid);
+  }
+
+  return 0;
 }
 
 /*---------------------------------------------------------------------------*
@@ -37,7 +41,7 @@ main(int argc, char *argv)
 
 void cleanExit()
 {
-    exit(0);
+  exit(EXIT_SUCCESS);
 }
 
 /*---------------------------------------------------------------------------*
@@ -46,18 +50,8 @@ void cleanExit()
  *
  *---------------------------------------------------------------------------*/
 
-perform_http(int sockid)
+int perform_http(int sockid)
 {
-
+  return 0;
 }
-
-
-
-
-
-
-
-
-
-
 

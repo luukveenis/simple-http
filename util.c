@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 /* ------------
-* util.c: used by client.c and server.c 
+* util.c: used by client.c and server.c
 * ---------------*/
 
 /* write "size" bytes of "ptr" to "sd" */
