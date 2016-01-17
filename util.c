@@ -6,10 +6,17 @@
 -------------------------------*/
 
 #include <unistd.h>
+#include <string.h>
 
 /* ------------
 * util.c: used by client.c and server.c
 * ---------------*/
+
+/* Remove trailing newlines or carriage returns */
+void trim(char *buff)
+{
+  buff[strcspn(buff, "\r\n")] = 0;
+}
 
 /* write "size" bytes of "ptr" to "sd" */
 
