@@ -13,7 +13,7 @@
 
 /* write "size" bytes of "ptr" to "sd" */
 
-int written(int sd, char *ptr, int size)
+int writen(int sd, char *ptr, int size)
 {
     int no_left, no_written;
 

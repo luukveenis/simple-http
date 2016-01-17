@@ -21,12 +21,15 @@
  * don't forget to handle errors
  */
 
+/* -------- Function Definitions --------- */
+int parse_URI(char*, char*, int*, char*);
+
 int main(int argc, char **argv)
 {
-    char uri[MAX_STR_LEN];
-    char hostname[MAX_STR_LEN];
-    char identifier[MAX_STR_LEN];
-    int sockid, port;
+  char uri[MAX_STR_LEN];
+  char hostname[MAX_STR_LEN];
+  char identifier[MAX_STR_LEN];
+  int sockid, port = 0;
 
     printf("Open URI:  ");
     scanf("%s", uri);
