@@ -5,6 +5,9 @@
 * Instructor: Kui Wu
 -------------------------------*/
 
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,6 +30,9 @@
 
 /* -------- Function Definitions --------- */
 int parse_URI(char*, char*, int*, char*);
+int process_hostname(char*);
+int perform_http(int, char*, char*);
+int open_connection(char *hostname, int port);
 
 int main(int argc, char **argv)
 {
@@ -45,9 +51,99 @@ int main(int argc, char **argv)
     printf("Aborting...\n");
     exit(EXIT_FAILURE);
   }
-  /* sockid = open_connection(hostname, port);
-  perform_http(sockid, identifier);*/
+  sockid = open_connection(hostname, port);
+  perform_http(sockid, hostname, identifier);
   exit(EXIT_SUCCESS);
+}
+
+/*------------------------------------*
+* connect to a HTTP server using hostname and port,
+* and get the resource specified by identifier
+*--------------------------------------*/
+int perform_http(int sockid, char *hostname, char *identifier)
+{
+  /* connect to server and retrieve response */
+  int resp_len = 0, result_len = 0, buffsize = MAX_STR_LEN;
+  char request[MAX_STR_LEN];
+  char resp[MAX_STR_LEN];
+  char *result = (char *)malloc(buffsize);
+
+  sprintf(request, "GET http://%s/%s HTTP/1.0\r\n\r\n", hostname, identifier);
+  printf("\n---Request Begin---\n");
+  printf("%s", request);
+
+  /* send the request */
+  if (write(sockid, request, strlen(request)) < 0)
+  {
+    perror("couldn't send request");
+    exit(EXIT_FAILURE);
+  }
+
+  printf("---Request end---\n");
+  printf("HTTP request sent, awaiting response...\n\n");
+
+  /* Receive the stuff */
+  while ((resp_len = recv(sockid, resp, MAX_STR_LEN, 0)) > 0)
+  {
+    /* If the result buffer is full, double the size */
+    if (result_len + resp_len >= buffsize)
+    {
+      buffsize *= 2;
+      result = (char *)realloc(result, buffsize);
+    }
+    memcpy(result + result_len, resp, resp_len);
+    result_len += resp_len;
+  }
+  if (resp_len == -1)
+  {
+    perror("recv failed");
+    exit(EXIT_FAILURE);
+  }
+
+  printf("---Response header---\n");
+  /* Print header */
+  printf("%s\n", result);
+
+  printf("---Response body---\n");
+  /* print the body here */
+
+  free(result);
+  close(sockid);
+  return 0;
+}
+
+/*---------------------------------------------------------------------------*
+ *
+ * open_conn() routine. It connects to a remote server on a specified port.
+ *
+ *---------------------------------------------------------------------------*/
+
+int open_connection(char *hostname, int port)
+{
+
+  struct sockaddr_in server_addr;
+  struct hostent *server_ent;
+
+  server_ent = gethostbyname(hostname);
+  memcpy(&server_addr.sin_addr, server_ent->h_addr, server_ent->h_length);
+  server_addr.sin_family = AF_INET;
+  server_addr.sin_port = htons(port);
+
+  int sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  if (-1 == sockfd)
+  {
+    perror("cannot create socket");
+    exit(EXIT_FAILURE);
+  }
+
+  if (-1 == connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)))
+  {
+    perror("connect failed");
+    close(sockfd);
+    exit(EXIT_FAILURE);
+  }
+
+  return sockfd;
 }
 
 /* Parse a "uri" into "hostname" and resource "identifier"
@@ -75,11 +171,13 @@ int parse_URI(char *uri, char *hostname, int *port, char *identifier)
     {
       port_provided = 1;
       strncpy(hostname, start, (cursor - start));
+      trim(hostname);
       break;
     }
     if (*cursor == '/')
     {
       strncpy(hostname, start, (cursor - start));
+      trim(hostname);
       break;
     }
   }
@@ -116,33 +214,5 @@ int parse_URI(char *uri, char *hostname, int *port, char *identifier)
   if (*port == 0)
     *port = 80;
 
-   return 0;
-}
-
-/*------------------------------------*
-* connect to a HTTP server using hostname and port,
-* and get the resource specified by identifier
-*--------------------------------------*/
-int perform_http(int sockid, char *identifier)
-{
-  /* connect to server and retrieve response */
-
-   close(sockid);
-   return 0;
-}
-
-/*---------------------------------------------------------------------------*
- *
- * open_conn() routine. It connects to a remote server on a specified port.
- *
- *---------------------------------------------------------------------------*/
-
-int open_connection(char *hostname, int port)
-{
-
-  int sockfd;
-  /* generate socket
-   * connect socket to the host address
-   */
-  return sockfd;
+  return 0;
 }
