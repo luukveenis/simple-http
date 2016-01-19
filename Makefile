@@ -15,4 +15,4 @@ server: server.o util.o
 	gcc -g -o server server.o util.o  -lnsl
 
 clean:
-	rm *.o
+	rm *.o client server
