@@ -67,6 +67,7 @@ int perform_http(int sockid, char *hostname, char *identifier)
   char request[MAX_STR_LEN];
   char resp[MAX_STR_LEN];
   char *result = (char *)malloc(buffsize);
+  char *begin, *end;
 
   sprintf(request, "GET http://%s/%s HTTP/1.0\r\n\r\n", hostname, identifier);
   printf("\n---Request Begin---\n");
@@ -100,12 +101,17 @@ int perform_http(int sockid, char *hostname, char *identifier)
     exit(EXIT_FAILURE);
   }
 
+  /* Extract the header and print it */
   printf("---Response header---\n");
-  /* Print header */
-  printf("%s\n", result);
+  begin = result;
+  end = strstr(result, "\r\n\r\n");
+  printf("%.*s\n\n", (int)(end - begin), begin);
 
+  /* Extract the body and print it */
   printf("---Response body---\n");
-  /* print the body here */
+  begin = end + 4; // Move cursor after the first \r\n\r\n
+  end = strstr(end + 1, "\r\n\r\n");
+  printf("%.*s\n", (int)(end - begin), begin);
 
   free(result);
   close(sockid);
