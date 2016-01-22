@@ -133,7 +133,8 @@ int open_connection(char *hostname, int port)
   server_ent = gethostbyname(hostname);
   if (server_ent == NULL)
   {
-    printf("ERROR: could not resolve hostname\n");
+    perror("gethostbyname");
+    printf("Hostname: %s\n", hostname);
     exit(EXIT_FAILURE);
   }
 
@@ -186,13 +187,13 @@ int parse_URI(char *uri, char *hostname, int *port, char *identifier)
     {
       port_provided = 1;
       strncpy(hostname, start, (cursor - start));
-      trim(hostname);
+      hostname[(cursor - start)] = '\0';
       break;
     }
     if (*cursor == '/')
     {
       strncpy(hostname, start, (cursor - start));
-      trim(hostname);
+      hostname[(cursor - start)] = '\0';
       break;
     }
   }
