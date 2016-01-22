@@ -131,6 +131,12 @@ int open_connection(char *hostname, int port)
   struct hostent *server_ent;
 
   server_ent = gethostbyname(hostname);
+  if (server_ent == NULL)
+  {
+    perror("gethostbyname");
+    exit(EXIT_FAILURE);
+  }
+
   memcpy(&server_addr.sin_addr, server_ent->h_addr, server_ent->h_length);
   server_addr.sin_family = AF_INET;
   server_addr.sin_port = htons(port);
