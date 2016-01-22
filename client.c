@@ -133,7 +133,7 @@ int open_connection(char *hostname, int port)
   server_ent = gethostbyname(hostname);
   if (server_ent == NULL)
   {
-    perror("gethostbyname");
+    printf("ERROR: could not resolve hostname\n");
     exit(EXIT_FAILURE);
   }
 
@@ -172,12 +172,15 @@ int parse_URI(char *uri, char *hostname, int *port, char *identifier)
   /* Report error if the protocol is not specified */
   if (strncmp(uri, "http://", 7))
   {
-    printf("Invalid: No protocol specified\n");
-    return -1;
+    start = cursor = uri;
+  }
+  else
+  {
+    start = cursor = uri + 7;
   }
 
   /* Begin reading after the 'http://' */
-  for (cursor = start = (uri + 7); *cursor; cursor++)
+  for (; *cursor; cursor++)
   {
     if (*cursor == ':')
     {
