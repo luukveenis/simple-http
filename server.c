@@ -7,6 +7,7 @@
 
 #include <netdb.h>
 #include <unistd.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,6 +33,8 @@ int main(int argc, char **argv)
   unsigned int clilen;
   int sockfd, newsockfd, port, resp_len; /* return value of the accept() call */
   struct sockaddr_in server, client;
+
+  signal(SIGINT, cleanExit);
 
   /* User must provide port number and directory when starting the server */
   if (!argv[1] || !argv[2] || argv[3])
@@ -114,6 +117,7 @@ int init_server(int port, struct sockaddr_in *server, int serverlen)
  *---------------------------------------------------------------------------*/
 void cleanExit()
 {
+  printf("\nInterrupt detected, exiting...\n");
   exit(EXIT_SUCCESS);
 }
 
