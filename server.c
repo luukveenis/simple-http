@@ -14,27 +14,33 @@
 #include <strings.h>
 
 #define MAX_STR_LEN 120         /* maximum string length */
+#define MAX_REQUEST_LEN 2048
 #define SERVER_PORT_ID 9898     /* server port number */
 
 /*--------------------- Function prototypes --------------------------*/
 void cleanExit();
 void set_dir(char *);
 int init_server(int, struct sockaddr_in*, int);
+int perform_http(int);
+int process_request(int, char*);
+void safe_write(int, char*, int);
 
 /*---------------------main() routine--------------------------*
  * tasks for main
  * generate socket and get socket id,
- * max number of connection is 3 (maximum length the queue of pending connections may grow to)
+ * max number of connection is 3
+ * (maximum length the queue of pending connections may grow to)
  * Accept request from client and generate new socket
  * Communicate with client and close new socket after done
  *---------------------------------------------------------------------------*/
 int main(int argc, char **argv)
 {
-  char *dir, buf[MAX_STR_LEN];
+  char *dir;
   unsigned int clilen;
-  int sockfd, newsockfd, port, resp_len; /* return value of the accept() call */
+  int sockfd, newsockfd, port; /* return value of the accept() call */
   struct sockaddr_in server, client;
 
+  /* Exit nicely on ^C so sockets are closed */
   signal(SIGINT, cleanExit);
 
   /* User must provide port number and directory when starting the server */
@@ -44,14 +50,16 @@ int main(int argc, char **argv)
     printf("USAGE: SimpServer <port-number> <directory-name>\n");
     exit(EXIT_FAILURE);
   }
-  set_dir(argv[2]);
+  set_dir(argv[2]); // Run server in directory specified
   port = atoi(argv[1]);
 
+  /* Create and bind the socket, then listen on it */
   sockfd = init_server(port, &server, sizeof(server));
   listen(sockfd, 5);
   clilen = sizeof(client);
 
-  while (1)
+  /* Loop and wait for requests to come in from clients */
+  for (;;)
   {
     /* Accept connection from client */
     newsockfd = accept(sockfd, (struct sockaddr *)&client, &clilen);
@@ -60,24 +68,8 @@ int main(int argc, char **argv)
       perror("accept");
       exit(EXIT_FAILURE);
     }
-
-    /* Read the client's message */
-    memset(buf, 0, MAX_STR_LEN);
-    resp_len = read(newsockfd, buf, MAX_STR_LEN);
-    if (resp_len < 0)
-    {
-      perror("read");
-      exit(EXIT_FAILURE);
-    }
-    printf("Message: %s\n", buf);
-
-    /* Send a response */
-    resp_len = write(newsockfd, "Done!", 5);
-    if (resp_len < 0)
-    {
-      perror("write");
-      exit(EXIT_FAILURE);
-    }
+    /* Handle the client's request */
+    perform_http(newsockfd);
 
     close(newsockfd);
   }
@@ -85,10 +77,11 @@ int main(int argc, char **argv)
   return 0;
 }
 
-/* Changes the current working directory to that specified by path
+/*---------------------------------------------------------------------------*
+ * Changes the current working directory to that specified by path
  * If the operation fails, an error is printed and the program is
  * terminated.
- */
+ *---------------------------------------------------------------------------*/
 void set_dir(char *path)
 {
   if (chdir(path) < 0)
@@ -98,8 +91,10 @@ void set_dir(char *path)
   }
 }
 
-/* Creates a new socket for the server and binds it.
- * Returns the socket file descriptor for use by the program. */
+/*---------------------------------------------------------------------------*
+ * Creates a new socket for the server and binds it.
+ * Returns the socket file descriptor for use by the program.
+ *---------------------------------------------------------------------------*/
 int init_server(int port, struct sockaddr_in *server, int serverlen)
 {
   int sockfd;
@@ -125,9 +120,7 @@ int init_server(int port, struct sockaddr_in *server, int serverlen)
 }
 
 /*---------------------------------------------------------------------------*
- *
  * cleans up opened sockets when killed by a signal.
- *
  *---------------------------------------------------------------------------*/
 void cleanExit()
 {
@@ -136,13 +129,82 @@ void cleanExit()
 }
 
 /*---------------------------------------------------------------------------*
- *
  * Accepts a request from "sockid" and sends a response to "sockid".
- *
  *---------------------------------------------------------------------------*/
 
 int perform_http(int sockid)
 {
+  int req_len, resp_len;
+  char buf[MAX_REQUEST_LEN];
+  char *part;
+
+  /* Read the client's message */
+  memset(buf, 0, MAX_REQUEST_LEN);
+  req_len = read(sockid, buf, MAX_REQUEST_LEN);
+  if (req_len < 0)
+  {
+    /* Failed to read request */
+    perror("read");
+    exit(EXIT_FAILURE);
+  }
+
+  /* Verify the request type is GET */
+  part = strtok(buf, " ");
+  if (!strcmp("GET", part))
+  {
+    /* Store the URI in part and process the request */
+    part = strtok(NULL, " ");
+    process_request(sockid, part);
+  }
+  else
+  {
+    /* If request type is not GET, return status code 501 */
+    safe_write(sockid, "HTTP/1.0 501 Not Implemented\r\n\r\n", 32);
+  }
+
   return 0;
 }
 
+/*---------------------------------------------------------------------------*
+ * Parses the request from the client for the requested resource, tries to
+ * open the resource, and sends back the content if successful. Otherwise
+ * returns the appropriate HTTP status code.
+ *---------------------------------------------------------------------------*/
+int process_request(int sockid, char *request)
+{
+  FILE *fp;
+  char buf[MAX_STR_LEN];
+  char *cursor = request + 7;       // begin reading after http://
+  cursor = strchr(cursor, '/') + 1; // the resource follows the '/'
+
+  /* Try to open the requested resource in the current directory */
+  if (fp = fopen(cursor, "r"))
+  {
+    /* If the file opened succesfully, report 200 and send contents of file */
+    safe_write(sockid, "HTTP/1.0 200 Okay\r\n\r\n", 21);
+    while (fgets(buf, MAX_STR_LEN, fp))
+    {
+      safe_write(sockid, buf, strlen(buf));
+    }
+  }
+  else
+  {
+    /* If the file failed to open, return status code 404 */
+    safe_write(sockid, "HTTP/1.0 404 Not Found\r\n\r\n", 26);
+  }
+
+  return 0;
+}
+
+/*---------------------------------------------------------------------------*
+ * This function just wraps write with error checking. It is used so that we
+ * don't have to use `if (write(...) < 0) { ... }` everywhere in the code.
+ *---------------------------------------------------------------------------*/
+void safe_write(int sockid, char *buf, int size)
+{
+  if (write(sockid, buf, size) < 0)
+  {
+    perror("write");
+    exit(EXIT_FAILURE);
+  }
+}
