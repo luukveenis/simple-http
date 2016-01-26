@@ -18,6 +18,7 @@
 
 /*--------------------- Function prototypes --------------------------*/
 void cleanExit();
+void set_dir(char *);
 int init_server(int, struct sockaddr_in*, int);
 
 /*---------------------main() routine--------------------------*
@@ -43,8 +44,8 @@ int main(int argc, char **argv)
     printf("USAGE: SimpServer <port-number> <directory-name>\n");
     exit(EXIT_FAILURE);
   }
+  set_dir(argv[2]);
   port = atoi(argv[1]);
-  dir = argv[2];
 
   sockfd = init_server(port, &server, sizeof(server));
   listen(sockfd, 5);
@@ -82,6 +83,19 @@ int main(int argc, char **argv)
   }
 
   return 0;
+}
+
+/* Changes the current working directory to that specified by path
+ * If the operation fails, an error is printed and the program is
+ * terminated.
+ */
+void set_dir(char *path)
+{
+  if (chdir(path) < 0)
+  {
+    perror("chdir");
+    exit(EXIT_FAILURE);
+  }
 }
 
 /* Creates a new socket for the server and binds it.
