@@ -36,17 +36,19 @@ int open_connection(char *hostname, int port);
 
 int main(int argc, char **argv)
 {
-  char uri[MAX_STR_LEN];
   char hostname[MAX_STR_LEN];
   char identifier[MAX_STR_LEN];
   int sockid, port = 0;
 
-  printf("Open URI:  ");
-  fgets(uri, sizeof(uri), stdin);
-  trim(uri);
+  if (!argv[1])
+  {
+    printf("Invalid program invocation\n");
+    printf("Format: SimpClient <request-url>\n");
+    exit(EXIT_FAILURE);
+  }
 
   /* Terminate on parsing errors */
-  if (parse_URI(uri, hostname, &port, identifier) == -1)
+  if (parse_URI(argv[1], hostname, &port, identifier) == -1)
   {
     printf("Aborting...\n");
     exit(EXIT_FAILURE);
