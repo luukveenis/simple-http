@@ -191,7 +191,7 @@ int process_request(int sockid, char *request)
   cursor = strchr(cursor, '/') + 1; // the resource follows the '/'
 
   /* Try to open the requested resource in the current directory */
-  if (fp = fopen(cursor, "r"))
+  if ((fp = fopen(cursor, "r")))
   {
     /* If the file opened succesfully, report 200 and send contents of file */
     safe_write(sockid, "HTTP/1.0 200 Okay\r\n\r\n", 21);
