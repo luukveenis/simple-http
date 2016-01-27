@@ -8,11 +8,11 @@ all: client server
 
 # compile client only 
 client: client.o  util.o
-	gcc -g -o client client.o  util.o
+	gcc -g -o SimpClient client.o  util.o
 
 #compile server only
 server: server.o util.o
-	gcc -g -o server server.o util.o
+	gcc -g -o SimpServer server.o util.o
 
 clean:
-	rm *.o client server
+	rm *.o SimpClient SimpServer

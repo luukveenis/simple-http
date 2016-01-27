@@ -27,8 +27,8 @@
 *.i*86
 *.x86_64
 *.hex
-client
-server
+SimpClient
+SimpServer
 
 # Debug files
 *.dSYM/
