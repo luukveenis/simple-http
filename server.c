@@ -43,15 +43,28 @@ int main(int argc, char **argv)
   /* Exit nicely on ^C so sockets are closed */
   signal(SIGINT, cleanExit);
 
-  /* User must provide port number and directory when starting the server */
-  if (!argv[1] || !argv[2] || argv[3])
+  /* User must provide port number and directory when starting the server
+   * If a port is not specified, port 80 is used.
+   * If neither are provide, the program displays an error and terminates */
+  if (argc < 2 || argc > 3)
   {
     printf("ERROR: invalid program invocation.\n");
     printf("USAGE: SimpServer <port-number> <directory-name>\n");
     exit(EXIT_FAILURE);
   }
-  set_dir(argv[2]); // Run server in directory specified
-  port = atoi(argv[1]);
+  else
+  {
+    if (argc == 3)
+    {
+      set_dir(argv[2]);
+      port = atoi(argv[1]);
+    }
+    else
+    {
+      set_dir(argv[1]);
+      port = 80;
+    }
+  }
 
   /* Create and bind the socket, then listen on it */
   sockfd = init_server(port, &server, sizeof(server));
