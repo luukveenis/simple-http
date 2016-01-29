@@ -170,7 +170,10 @@ int perform_http(int sockid)
     /* Store the URI in part and process the request */
     url = strtok(NULL, " ");
     part = strtok(NULL, " ");
-    trim(part); // Removes the trailing \r\n\r\n
+
+    /* If the HTTP version is provided, remove trailing \r\n\r\n */
+    if (part)
+      trim(part);
 
     /* Add 500 error for unsupported HTTP version */
     if (!part || strcmp(part, "HTTP/1.0"))
