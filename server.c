@@ -13,6 +13,8 @@
 #include <string.h>
 #include <strings.h>
 
+#include "util.h"
+
 #define MAX_STR_LEN 120         /* maximum string length */
 #define MAX_REQUEST_LEN 2048
 #define SERVER_PORT_ID 9898     /* server port number */
@@ -168,13 +170,17 @@ int perform_http(int sockid)
     /* Store the URI in part and process the request */
     url = strtok(NULL, " ");
     part = strtok(NULL, " ");
+    trim(part); // Removes the trailing \r\n\r\n
+
+    /* Add 500 error for unsupported HTTP version */
     if (!part || strcmp(part, "HTTP/1.0"))
     {
-      printf("Unsupported HTTP version\n");
-      exit(EXIT_FAILURE);
+      safe_write(sockid, "HTTP/1.0 500 Internal Server Error\r\n\r\n", 38);
     }
-
-    process_request(sockid, part);
+    else
+    {
+      process_request(sockid, url);
+    }
   }
   else
   {
