@@ -9,7 +9,15 @@ after. The only two changes made were:
 
     ie: GET http://www.example.com/index.html HTTP/0.0
 
-    This should not be allowed since HTTP/0.0 is invalid.
+    This should not be allowed since HTTP/0.0 is invalid. For this case, I
+    added 500 errors to my server, since we did not have an appropriate error
+    in the implementation. This use case was tested in the lab demo, so I
+    provided a solution to it here. The client hardcodes the HTTP version, so
+    the only way to trigger this behaviour is to modify the client source code
+    where it builds the request. The server will also return a 500 error if no
+    HTTP version is provided at all.
+
+      ie: GET http://webhome.cs.uvic.ca/~wkui/index.html\r\n\r\n
 
 
 2: I added a readme.txt file to my submission
