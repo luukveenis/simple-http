@@ -1,0 +1,19 @@
+=========================
+Changes since lab demo
+=========================
+
+Since my code was fully functional in the lab demo, not many changes were made
+after. The only two changes made were:
+
+1: I added error checking for invalid HTTP versions
+
+    ie: GET http://www.example.com/index.html HTTP/0.0
+
+    This should not be allowed since HTTP/0.0 is invalid.
+
+
+2: I added a readme.txt file to my submission
+
+  I did not provide this in the lab since we were demoing the code in person
+  and I felt it was probably not necessary at the time. The readme provided now
+  has detailed instructions on how to run my code.
