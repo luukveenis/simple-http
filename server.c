@@ -149,7 +149,7 @@ int perform_http(int sockid)
 {
   int req_len, resp_len;
   char buf[MAX_REQUEST_LEN];
-  char *part;
+  char *part, *url;
 
   /* Read the client's message */
   memset(buf, 0, MAX_REQUEST_LEN);
@@ -166,7 +166,14 @@ int perform_http(int sockid)
   if (!strcmp("GET", part))
   {
     /* Store the URI in part and process the request */
+    url = strtok(NULL, " ");
     part = strtok(NULL, " ");
+    if (!part || strcmp(part, "HTTP/1.0"))
+    {
+      printf("Unsupported HTTP version\n");
+      exit(EXIT_FAILURE);
+    }
+
     process_request(sockid, part);
   }
   else
